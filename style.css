@@ -549,6 +549,62 @@ body {
 .social-link--maps      { color: #EA4335; }
 .social-link--phone     { color: var(--brand); }
 
+/* ─── action pills (pay with bit, jobs) ─── */
+
+.pill-row {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+  padding-bottom: 4px;
+}
+
+.pill-row--secondary {
+  margin-top: 12px;
+  padding-bottom: 8px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  min-width: 72px;
+  padding: 6px 22px;
+  border: none;
+  border-radius: 999px;
+  font-family: var(--font-stack);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pill:hover,
+.pill:focus-visible { opacity: 0.88; }
+
+.pill:active { transform: scale(0.94); }
+
+.pill--bit,
+.pill--paybox { min-width: 120px; }
+
+.pill--bit    { background: #06061B; color: #3DD4BC; }
+.pill--paybox { background: #33B5E5; color: #FFFFFF; }
+
+.pill--jobs {
+  background: #D1D5DB;
+  color: #111827;
+  font-weight: 400;
+  font-size: 0.9rem;
+  min-height: 28px;
+  min-width: 60px;
+  padding: 4px 14px;
+}
+
 /* ============================================================
    9. FOOTER
    ============================================================ */

@@ -7,14 +7,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ברטה">
-  <link rel="manifest" href="manifest.json?v=4">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=4">
+  <link rel="manifest" href="manifest.json?v=10">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=10">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=10">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
-  <script src="app.js?v=4" defer></script>
+  <link rel="stylesheet" href="style.css?v=10">
+  <script src="app.js?v=10" defer></script>
   <title>ברטה - כרטיס ניקוב</title>
 </head>
 <body>
@@ -30,7 +30,7 @@
 
     <!-- Header / Logo -->
     <header class="header">
-      <img src="logo.png?v=4" alt="ברטה - Berta" class="header-logo">
+      <img src="logo.png?v=10" alt="ברטה - Berta" class="header-logo">
     </header>
 
     <!-- Toast notification -->
@@ -155,6 +155,17 @@
         </svg>
       </a>
     </nav>
+
+    <!-- Action pills row 1: payment methods -->
+    <div class="pill-row">
+      <button type="button" id="bit-btn"    class="pill pill--bit"    aria-label="תשלום בביט">bit</button>
+      <button type="button" id="paybox-btn" class="pill pill--paybox" aria-label="תשלום בפייבוקס">PayBox</button>
+    </div>
+
+    <!-- Action pills row 2: secondary (jobs) -->
+    <div class="pill-row pill-row--secondary">
+      <button type="button" id="jobs-btn" class="pill pill--jobs" aria-label="דרושים">דרושים</button>
+    </div>
 
     <!-- Footer spacer -->
     <footer class="footer"></footer>

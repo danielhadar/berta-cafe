@@ -883,6 +883,24 @@ giftAmountInput.addEventListener("animationend", function () {
 });
 
 // ============================================================
+// PAY WITH BIT (demo: toast only)
+// ============================================================
+
+var bitBtnEl    = document.getElementById("bit-btn");
+var payboxBtnEl = document.getElementById("paybox-btn");
+var jobsBtnEl   = document.getElementById("jobs-btn");
+
+if (bitBtnEl) {
+  bitBtnEl.addEventListener("click", function () { showToast("תשלום בביט"); });
+}
+if (payboxBtnEl) {
+  payboxBtnEl.addEventListener("click", function () { showToast("תשלום בפייבוקס"); });
+}
+if (jobsBtnEl) {
+  jobsBtnEl.addEventListener("click", function () { showToast("בואו לעבוד איתנו!"); });
+}
+
+// ============================================================
 // INITIALIZATION
 // ============================================================
 
