@@ -297,6 +297,57 @@ body {
 }
 
 /* ============================================================
+   8b. SOCIAL HUB
+   ============================================================ */
+
+.social-separator {
+  width: 100%;
+  height: 1px;
+  background: rgba(63, 92, 56, 0.18);
+  border: none;
+  margin: 4px 0 18px;
+}
+
+.social-hub {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 22px;
+  padding-bottom: 8px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.social-link svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.social-link:hover,
+.social-link:focus-visible { opacity: 1; }
+
+.social-link:active { transform: scale(0.92); }
+
+.social-link--facebook  { color: #1877F2; }
+.social-link--instagram { color: #E1306C; }
+.social-link--maps      { color: #EA4335; }
+.social-link--phone     { color: var(--brand); }
+
+/* ============================================================
    9. FOOTER
    ============================================================ */
 
