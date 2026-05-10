@@ -18,6 +18,11 @@ var MIN_QUANTITY = 1;
 // The localStorage key used to persist the punch card.
 var LOCALSTORAGE_KEY = "berta_punch_card";
 
+// Gift card config (demo).
+var GIFT_CODE = "2552";
+var GIFT_INITIAL_BALANCE = 180;
+var GIFT_LOCALSTORAGE_KEY = "berta_gift_card";
+
 // ============================================================
 // SHAPE DEFINITIONS — 16 geometric shapes inspired by the brand
 // Each shape is defined relative to center (0,0) within ~34x34 box.
@@ -688,6 +693,196 @@ window.addEventListener("storage", function (e) {
 });
 
 // ============================================================
+// TABS
+// ============================================================
+
+var tabCoffeeBtn  = document.getElementById("tab-coffee-btn");
+var tabGiftBtn    = document.getElementById("tab-gift-btn");
+var tabCoffeePane = document.getElementById("tab-coffee");
+var tabGiftPane   = document.getElementById("tab-gift");
+
+function switchTab(which) {
+  var coffee = which === "coffee";
+  tabCoffeeBtn.classList.toggle("tab--active", coffee);
+  tabGiftBtn.classList.toggle("tab--active", !coffee);
+  tabCoffeeBtn.setAttribute("aria-selected", coffee ? "true" : "false");
+  tabGiftBtn.setAttribute("aria-selected", coffee ? "false" : "true");
+  tabCoffeePane.classList.toggle("hidden", !coffee);
+  tabGiftPane.classList.toggle("hidden", coffee);
+}
+
+tabCoffeeBtn.addEventListener("click", function () { switchTab("coffee"); });
+tabGiftBtn.addEventListener("click",   function () { switchTab("gift"); });
+
+// ============================================================
+// GIFT CARD
+// ============================================================
+
+var giftUnloadedEl   = document.getElementById("gift-unloaded");
+var giftLoadedEl     = document.getElementById("gift-loaded");
+var giftCodeInputEl  = document.getElementById("gift-code-input");
+var giftCheckBtnEl   = document.getElementById("gift-check-btn");
+var giftStatusEl     = document.getElementById("gift-status");
+var giftBalanceEl    = document.getElementById("gift-balance");
+var giftAmountInput  = document.getElementById("gift-amount-input");
+var giftRedeemBtn    = document.getElementById("gift-redeem-btn");
+var giftRedeemStatus = document.getElementById("gift-redeem-status");
+
+var giftState = { loaded: false, balance: GIFT_INITIAL_BALANCE };
+var giftStatusTimer = null;
+var giftRedeemStatusTimer = null;
+
+function loadGiftState() {
+  var defaults = { loaded: false, balance: GIFT_INITIAL_BALANCE };
+  var raw;
+  try { raw = localStorage.getItem(GIFT_LOCALSTORAGE_KEY); } catch (e) { return defaults; }
+  if (raw === null) return defaults;
+  var parsed;
+  try { parsed = JSON.parse(raw); } catch (e) { return defaults; }
+  if (typeof parsed.loaded !== "boolean") return defaults;
+  if (typeof parsed.balance !== "number" || !Number.isFinite(parsed.balance) || parsed.balance < 0) return defaults;
+  return { loaded: parsed.loaded, balance: parsed.balance };
+}
+
+function saveGiftState() {
+  try { localStorage.setItem(GIFT_LOCALSTORAGE_KEY, JSON.stringify(giftState)); }
+  catch (e) { showToast("לא ניתן לשמור את הכרטיס"); }
+}
+
+function renderGift() {
+  if (giftState.loaded) {
+    giftUnloadedEl.classList.add("hidden");
+    giftLoadedEl.classList.remove("hidden");
+    giftBalanceEl.textContent = giftState.balance;
+    giftAmountInput.setAttribute("max", String(giftState.balance));
+    updateGiftRedeemBtnState();
+  } else {
+    giftLoadedEl.classList.add("hidden");
+    giftUnloadedEl.classList.remove("hidden");
+    giftCodeInputEl.value = "";
+    updateGiftCheckBtnState();
+  }
+}
+
+function updateGiftCheckBtnState() {
+  giftCheckBtnEl.disabled = giftCodeInputEl.value.trim().length === 0;
+}
+
+function updateGiftRedeemBtnState() {
+  var v = giftAmountInput.value.trim();
+  if (v === "") { giftRedeemBtn.disabled = true; return; }
+  var n = Number(v);
+  giftRedeemBtn.disabled = !Number.isFinite(n) || n <= 0;
+}
+
+function showGiftStatus(el, timerRefName, text, type) {
+  if (timerRefName === "check") {
+    if (giftStatusTimer !== null) { clearTimeout(giftStatusTimer); giftStatusTimer = null; }
+  } else {
+    if (giftRedeemStatusTimer !== null) { clearTimeout(giftRedeemStatusTimer); giftRedeemStatusTimer = null; }
+  }
+  el.textContent = text;
+  el.className = "status-message " + type;
+  if (type === "error") {
+    var t = setTimeout(function () {
+      el.textContent = "";
+      el.className = "status-message hidden";
+      if (timerRefName === "check") giftStatusTimer = null;
+      else giftRedeemStatusTimer = null;
+    }, 3000);
+    if (timerRefName === "check") giftStatusTimer = t;
+    else giftRedeemStatusTimer = t;
+  }
+}
+
+function handleGiftCheck() {
+  var entered = giftCodeInputEl.value.trim().toLowerCase();
+  if (entered === GIFT_CODE.toLowerCase()) {
+    giftState = { loaded: true, balance: GIFT_INITIAL_BALANCE };
+    saveGiftState();
+    renderGift();
+    showToast("כרטיס נטען בהצלחה");
+  } else {
+    giftCodeInputEl.value = "";
+    updateGiftCheckBtnState();
+    giftCodeInputEl.classList.add("shake");
+    showGiftStatus(giftStatusEl, "check", "קוד לא נכון, נסו שוב", "error");
+  }
+}
+
+function handleGiftRedeem() {
+  var v = giftAmountInput.value.trim();
+  var amount = Number(v);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    showGiftStatus(giftRedeemStatus, "redeem", "סכום לא תקין", "error");
+    return;
+  }
+  if (amount > giftState.balance) {
+    giftAmountInput.classList.add("shake");
+    showGiftStatus(giftRedeemStatus, "redeem", "אין מספיק יתרה", "error");
+    return;
+  }
+  giftState.balance -= amount;
+  saveGiftState();
+  giftAmountInput.value = "";
+  if (giftState.balance === 0) {
+    giftState = { loaded: false, balance: GIFT_INITIAL_BALANCE };
+    saveGiftState();
+    renderGift();
+    showToast("הכרטיס נוצל במלואו");
+  } else {
+    renderGift();
+    showToast(amount + " ₪ נוצלו");
+  }
+}
+
+giftCodeInputEl.addEventListener("input", function () {
+  updateGiftCheckBtnState();
+  if (giftStatusEl.classList.contains("error")) {
+    giftStatusEl.textContent = "";
+    giftStatusEl.className = "status-message hidden";
+  }
+});
+
+giftCheckBtnEl.addEventListener("click", function () {
+  if (!giftCheckBtnEl.disabled) handleGiftCheck();
+});
+
+giftCodeInputEl.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && giftCodeInputEl.value.trim().length > 0) {
+    e.preventDefault();
+    handleGiftCheck();
+  }
+});
+
+giftCodeInputEl.addEventListener("animationend", function () {
+  giftCodeInputEl.classList.remove("shake");
+});
+
+giftAmountInput.addEventListener("input", function () {
+  updateGiftRedeemBtnState();
+  if (giftRedeemStatus.classList.contains("error")) {
+    giftRedeemStatus.textContent = "";
+    giftRedeemStatus.className = "status-message hidden";
+  }
+});
+
+giftRedeemBtn.addEventListener("click", function () {
+  if (!giftRedeemBtn.disabled) handleGiftRedeem();
+});
+
+giftAmountInput.addEventListener("keydown", function (e) {
+  if (e.key === "Enter" && !giftRedeemBtn.disabled) {
+    e.preventDefault();
+    handleGiftRedeem();
+  }
+});
+
+giftAmountInput.addEventListener("animationend", function () {
+  giftAmountInput.classList.remove("shake");
+});
+
+// ============================================================
 // INITIALIZATION
 // ============================================================
 
@@ -714,6 +909,10 @@ window.addEventListener("storage", function (e) {
 
   // Save state if shapes were newly generated (first load or migration)
   saveState(state);
+
+  // Gift card init
+  giftState = loadGiftState();
+  renderGift();
 
   // Check for pending celebration
   if (state.celebrationPending) {

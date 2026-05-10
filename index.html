@@ -7,14 +7,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="ברטה">
-  <link rel="manifest" href="manifest.json?v=3">
-  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=3">
-  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=3">
+  <link rel="manifest" href="manifest.json?v=4">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=4">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=4">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3">
-  <script src="app.js?v=3" defer></script>
+  <link rel="stylesheet" href="style.css?v=4">
+  <script src="app.js?v=4" defer></script>
   <title>ברטה - כרטיס ניקוב</title>
 </head>
 <body>
@@ -30,47 +30,97 @@
 
     <!-- Header / Logo -->
     <header class="header">
-      <img src="logo.png?v=3" alt="ברטה - Berta" class="header-logo">
+      <img src="logo.png?v=4" alt="ברטה - Berta" class="header-logo">
     </header>
 
     <!-- Toast notification -->
     <div id="toast" class="toast hidden" aria-live="polite"></div>
 
-    <!-- Punch card -->
-    <section class="card">
-      <div class="card-grid" dir="ltr">
-        <svg class="card-svg" viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg" aria-label="כרטיס ניקוב">
-          <!-- Slots generated dynamically by app.js -->
-        </svg>
-      </div>
-      <p class="card-progress" dir="ltr"><span id="progress-count">0</span> / 10</p>
-    </section>
+    <!-- Tabs -->
+    <nav class="tabs" role="tablist" aria-label="בחירת כרטיס">
+      <button type="button" id="tab-coffee-btn" class="tab tab--active" role="tab" aria-selected="true" aria-controls="tab-coffee">כרטיסיית קפה</button>
+      <button type="button" id="tab-gift-btn" class="tab" role="tab" aria-selected="false" aria-controls="tab-gift">כרטיס מתנה</button>
+    </nav>
 
-    <!-- Quantity selector -->
-    <section class="quantity-section">
-      <p class="quantity-label">כמה ניקובים?</p>
-      <div class="stepper" dir="ltr">
-        <button type="button" id="stepper-minus" class="stepper-btn stepper-minus" aria-label="הפחת ניקוב" disabled>-</button>
-        <span id="stepper-value" class="stepper-value" aria-live="polite">1</span>
-        <button type="button" id="stepper-plus" class="stepper-btn stepper-plus" aria-label="הוסף ניקוב">+</button>
-      </div>
-    </section>
+    <!-- Tab: Coffee Punch Card -->
+    <div id="tab-coffee" class="tab-panel" role="tabpanel" aria-labelledby="tab-coffee-btn">
+      <section class="card">
+        <div class="card-grid" dir="ltr">
+          <svg class="card-svg" viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg" aria-label="כרטיס ניקוב">
+            <!-- Slots generated dynamically by app.js -->
+          </svg>
+        </div>
+        <p class="card-progress" dir="ltr"><span id="progress-count">0</span> / 10</p>
+      </section>
 
-    <!-- Code entry -->
-    <section class="code-section">
-      <input
-        type="text"
-        id="code-input"
-        class="code-input"
-        dir="ltr"
-        inputmode="numeric"
-        placeholder="הזינו קוד"
-        aria-label="הזינו קוד"
-        autocomplete="off"
-      >
-      <button type="button" id="punch-btn" class="punch-btn" disabled>קדימה</button>
-      <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
-    </section>
+      <section class="quantity-section">
+        <p class="quantity-label">כמה ניקובים?</p>
+        <div class="stepper" dir="ltr">
+          <button type="button" id="stepper-minus" class="stepper-btn stepper-minus" aria-label="הפחת ניקוב" disabled>-</button>
+          <span id="stepper-value" class="stepper-value" aria-live="polite">1</span>
+          <button type="button" id="stepper-plus" class="stepper-btn stepper-plus" aria-label="הוסף ניקוב">+</button>
+        </div>
+      </section>
+
+      <section class="code-section">
+        <input
+          type="text"
+          id="code-input"
+          class="code-input"
+          dir="ltr"
+          inputmode="numeric"
+          placeholder="הזינו קוד"
+          aria-label="הזינו קוד"
+          autocomplete="off"
+        >
+        <button type="button" id="punch-btn" class="punch-btn" disabled>קדימה</button>
+        <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <!-- Tab: Gift Card -->
+    <div id="tab-gift" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-gift-btn">
+
+      <!-- Unloaded state: enter a gift code -->
+      <section id="gift-unloaded" class="gift-unloaded">
+        <p class="gift-prompt">הזינו קוד מתנה</p>
+        <input
+          type="text"
+          id="gift-code-input"
+          class="gift-code-input"
+          dir="ltr"
+          inputmode="numeric"
+          placeholder="קוד מתנה"
+          aria-label="קוד מתנה"
+          autocomplete="off"
+        >
+        <button type="button" id="gift-check-btn" class="gift-check-btn" disabled>בדיקה</button>
+        <div id="gift-status" class="status-message hidden" role="status" aria-live="polite"></div>
+      </section>
+
+      <!-- Loaded state: balance + redeem -->
+      <section id="gift-loaded" class="gift-loaded hidden">
+        <div class="gift-card">
+          <p class="gift-balance-label">יתרה</p>
+          <p class="gift-balance-amount" dir="ltr"><span id="gift-balance">180</span> ₪</p>
+          <p class="gift-redeem-label">כמה להשתמש? (₪)</p>
+          <input
+            type="number"
+            id="gift-amount-input"
+            class="gift-amount-input"
+            dir="ltr"
+            inputmode="numeric"
+            min="1"
+            step="1"
+            placeholder="סכום"
+            aria-label="סכום למימוש"
+            autocomplete="off"
+          >
+          <button type="button" id="gift-redeem-btn" class="gift-redeem-btn" disabled>מימוש</button>
+          <div id="gift-redeem-status" class="status-message hidden" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+    </div>
 
     <!-- Social hub -->
     <hr class="social-separator" aria-hidden="true">

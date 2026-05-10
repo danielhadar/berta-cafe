@@ -87,6 +87,48 @@ body {
 }
 
 /* ============================================================
+   4b. TABS
+   ============================================================ */
+
+.tabs {
+  width: 100%;
+  display: flex;
+  border-bottom: 1px solid rgba(63, 92, 56, 0.18);
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+
+.tab {
+  flex: 1;
+  padding: 14px 8px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-stack);
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(63, 92, 56, 0.5);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab:hover { color: rgba(63, 92, 56, 0.8); }
+
+.tab--active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+}
+
+.tab-panel {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================================================
    5. PUNCH CARD
    ============================================================ */
 
@@ -295,6 +337,166 @@ body {
 .status-message.success {
   color: var(--success-green);
 }
+
+/* ============================================================
+   8a. GIFT CARD
+   ============================================================ */
+
+/* Unloaded — gift code prompt */
+.gift-unloaded {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gift-prompt {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.gift-code-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid rgba(63, 92, 56, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  font-family: var(--font-stack);
+  color: var(--brand);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.15s ease;
+  text-align: center;
+}
+
+.gift-code-input::placeholder {
+  color: var(--gray-dark);
+  opacity: 0.7;
+}
+
+.gift-code-input:focus { border-color: var(--brand); }
+
+.gift-check-btn {
+  width: 100%;
+  height: 52px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--brand);
+  color: var(--white);
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.gift-check-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gift-check-btn:active:not(:disabled) { opacity: 0.85; }
+
+/* Loaded — balance + redeem inside a green-bordered card */
+.gift-loaded {
+  width: 100%;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.gift-card {
+  width: 100%;
+  background: var(--white);
+  border: var(--card-border);
+  border-radius: var(--radius);
+  padding: 22px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gift-balance-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+.gift-balance-amount {
+  font-size: 3.4rem;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.gift-redeem-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
+}
+
+.gift-amount-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid rgba(63, 92, 56, 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  font-family: var(--font-stack);
+  color: var(--brand);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.15s ease;
+  text-align: center;
+}
+
+.gift-amount-input::placeholder {
+  color: var(--gray-dark);
+  opacity: 0.7;
+}
+
+.gift-amount-input:focus { border-color: var(--brand); }
+
+.gift-amount-input::-webkit-outer-spin-button,
+.gift-amount-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.gift-amount-input { -moz-appearance: textfield; }
+
+.gift-redeem-btn {
+  width: 100%;
+  height: 52px;
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--brand);
+  color: var(--white);
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: var(--font-stack);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.gift-redeem-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.gift-redeem-btn:active:not(:disabled) { opacity: 0.85; }
 
 /* ============================================================
    8b. SOCIAL HUB
