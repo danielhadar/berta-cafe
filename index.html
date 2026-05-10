@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3F5C38">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ברטה">
+  <link rel="manifest" href="manifest.json?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+  <title>ברטה - כרטיס ניקוב</title>
+</head>
+<body>
+
+  <!-- localStorage unavailable error (hidden by default) -->
+  <div id="storage-error" class="storage-error hidden">
+    <p class="storage-error-he">הדפדפן לא תומך בשמירת נתונים. נסו לפתוח בדפדפן רגיל.</p>
+    <p class="storage-error-en">Your browser doesn't support data storage. Please use a regular browser.</p>
+  </div>
+
+  <!-- Main app container -->
+  <div id="app" class="app-container">
+
+    <!-- Header / Logo -->
+    <header class="header">
+      <img src="logo.png" alt="ברטה - Berta" class="header-logo">
+    </header>
+
+    <!-- Toast notification -->
+    <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+    <!-- Punch card -->
+    <section class="card">
+      <div class="card-grid" dir="ltr">
+        <svg class="card-svg" viewBox="0 0 300 130" xmlns="http://www.w3.org/2000/svg" aria-label="כרטיס ניקוב">
+          <!-- Slots generated dynamically by app.js -->
+        </svg>
+      </div>
+      <p class="card-progress" dir="ltr"><span id="progress-count">0</span> / 10</p>
+    </section>
+
+    <!-- Quantity selector -->
+    <section class="quantity-section">
+      <p class="quantity-label">כמה ניקובים?</p>
+      <div class="stepper" dir="ltr">
+        <button type="button" id="stepper-minus" class="stepper-btn stepper-minus" aria-label="הפחת ניקוב" disabled>-</button>
+        <span id="stepper-value" class="stepper-value" aria-live="polite">1</span>
+        <button type="button" id="stepper-plus" class="stepper-btn stepper-plus" aria-label="הוסף ניקוב">+</button>
+      </div>
+    </section>
+
+    <!-- Code entry -->
+    <section class="code-section">
+      <input
+        type="text"
+        id="code-input"
+        class="code-input"
+        dir="ltr"
+        inputmode="numeric"
+        placeholder="הזינו קוד"
+        aria-label="הזינו קוד"
+        autocomplete="off"
+      >
+      <button type="button" id="punch-btn" class="punch-btn" disabled>קדימה</button>
+      <div id="status-message" class="status-message hidden" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Footer spacer -->
+    <footer class="footer"></footer>
+
+  </div>
+
+  <!-- Celebration overlay (hidden by default) -->
+  <div id="celebration" class="celebration-overlay" role="dialog" aria-modal="true" aria-labelledby="celebration-title">
+    <div class="confetti-container">
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+      <div class="confetti confetti-diamond"></div>
+      <div class="confetti confetti-circle"></div>
+      <div class="confetti confetti-hexagon"></div>
+      <div class="confetti confetti-triangle"></div>
+      <div class="confetti confetti-square"></div>
+    </div>
+    <div class="celebration-content">
+      <h2 id="celebration-title" class="celebration-line1">הקפה הזה על חשבוננו :)</h2>
+      <button type="button" id="celebration-close" class="celebration-close-btn">כרטיסיה חדשה</button>
+    </div>
+  </div>
+
+</body>
+</html>
