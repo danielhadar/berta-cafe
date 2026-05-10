@@ -2,7 +2,7 @@
 description: Ship the Berta Coffee punch card to prod — commit pending work, push to origin/main, and verify the live site picks up the change
 ---
 
-You are shipping the Berta Coffee punch card to production. "Prod" means `origin/main` on GitHub — Cloudflare Pages watches that branch and auto-deploys. The live site is **https://berta-coffee-demo.danielhadar.com** (canonical) and the auto-generated `berta-coffee-demo.pages.dev` URL (mirror).
+You are shipping the Berta Coffee punch card to production. "Prod" means `origin/main` on GitHub — pushing there triggers a GitHub Pages rebuild. The live site is **https://berta-coffee-demo.danielhadar.com**.
 
 ## Goal
 
@@ -34,11 +34,10 @@ Get everything the user is working on onto `origin/main`, safely, with a sensibl
 
 **6. Push.** `git push origin main`. Then `git status` to confirm clean + tracking up to date.
 
-**7. Verify the live site.** After push, give Cloudflare Pages ~30–60s to pick up the build, then probe:
+**7. Verify the live site.** After push, give GitHub Pages ~60–90s to rebuild, then probe:
 - `curl -sI https://berta-coffee-demo.danielhadar.com/ -o /dev/null -w "%{http_code}\n"` — should be `200`.
 - Optionally fetch a known string from the latest change to confirm content swapped (e.g. `curl -s https://berta-coffee-demo.danielhadar.com/style.css | grep -m1 "<some new selector>"`).
-- If it's still serving the old build, wait another 30–60s and re-probe. Pages builds for a static site are typically well under a minute.
-- The `berta-coffee-demo.pages.dev` mirror is updated at the same time — useful as a fallback if you suspect DNS or CF cache weirdness.
+- If it's still serving the old build, wait another 30–60s and re-probe. The build status itself can also be checked with `gh api repos/danielhadar/berta-coffee-demo/pages/builds/latest --jq '.status'` — `built` means the new version is live.
 
 **8. Report.** Tell the user:
 - Which commits went to origin (SHA range, one-line subjects).
@@ -56,5 +55,5 @@ Get everything the user is working on onto `origin/main`, safely, with a sensibl
 ## Scope notes
 
 - This is a static site (vanilla HTML/CSS/JS, no build step). Pushing to `main` is enough to trigger a deploy — there's nothing to compile, install, or test before the push.
-- The repo is private. Cloudflare Pages has authorized read access via the GitHub App integration.
-- DNS lives in Cloudflare. The custom domain `berta-coffee-demo.danielhadar.com` was added through Pages' "Custom domains" UI, which auto-managed the CNAME record in the same Cloudflare zone — there's no separate DNS record to maintain.
+- The repo is **public** — same arrangement as `matkonim`. The `PUNCH_CODE` in `app.js` is necessarily visible to anyone who visits the live site (client-side code), so private-repo'ing it would not actually hide the secret. We're in demo phase; if a stricter model is needed later, switch to server-side validation.
+- DNS lives in Cloudflare. `berta-coffee-demo.danielhadar.com` is a CNAME record pointing to `danielhadar.github.io`. Pages reads the domain from the `CNAME` file in the repo root.
