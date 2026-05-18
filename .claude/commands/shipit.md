@@ -46,7 +46,7 @@ If a commit only touches files that are not query-versioned (e.g. `README.md`, `
 
 **8. Verify the live site.** After push, give GitHub Pages ~60–90s to rebuild, then probe:
 - `curl -sI https://berta-coffee-demo.danielhadar.com/ -o /dev/null -w "%{http_code}\n"` — should be `200`.
-- Optionally fetch a known string from the latest change to confirm content swapped (e.g. `curl -s https://berta-coffee-demo.danielhadar.com/style.css | grep -m1 "<some new selector>"`). If you cache-busted in step 4, also fetch the asset with the new version string and confirm it serves: `curl -sI 'https://berta-coffee-demo.danielhadar.com/style.css?v=N' -o /dev/null -w "%{http_code}\n"` should be `200`.
+- Optionally fetch a known string from the latest change to confirm content swapped (e.g. `curl -s https://berta-coffee-demo.danielhadar.com/src/style.css | grep -m1 "<some new selector>"`). If you cache-busted in step 4, also fetch the asset with the new version string and confirm it serves: `curl -sI 'https://berta-coffee-demo.danielhadar.com/src/style.css?v=N' -o /dev/null -w "%{http_code}\n"` should be `200`.
 - If it's still serving the old build, wait another 30–60s and re-probe. The build status itself can also be checked with `gh api repos/danielhadar/berta-coffee-demo/pages/builds/latest --jq '.status'` — `built` means the new version is live.
 
 **9. Report.** Tell the user:

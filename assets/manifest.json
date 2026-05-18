@@ -1,7 +1,7 @@
 {
   "name": "קפה ברטה - כרטיס ניקוב",
   "short_name": "קפה ברטה",
-  "start_url": "./",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#F4EBD2",
   "theme_color": "#3F5C38",

@@ -3,19 +3,17 @@
    ============================================================ */
 
 :root {
+  /* Brand colors. If --brand (#3F5C38) or --bg (#F4EBD2) change, also update:
+     - <meta name="theme-color"> in index.html
+     - "theme_color" / "background_color" in assets/manifest.json */
   --brand: rgb(63, 92, 56);
-  --brand-hex: #3F5C38;
-  --coral: #EA9580;
-  --cream: #F4EBD2;
-  --butter: #F2D258;
+  --bg: #F4EBD2;
+
   --slot-empty: #B5C2A8;
   --error-red: #C0392B;
   --gray: #D0D0D0;
   --gray-dark: #999;
   --white: #FFFFFF;
-  --bg: #F4EBD2;
-  --card-shadow: none;
-  --card-border: 2px solid var(--brand);
   --radius: 12px;
   --radius-sm: 8px;
   --font-stack: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -57,7 +55,7 @@ body {
   max-width: 480px;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: 0 20px;
+  padding: 0 20px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -121,13 +119,6 @@ body {
   border-bottom-color: var(--brand);
 }
 
-.tab-panel {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 /* ============================================================
    5. PUNCH CARD
    ============================================================ */
@@ -136,8 +127,7 @@ body {
   width: 100%;
   background: var(--white);
   border-radius: var(--radius);
-  border: var(--card-border);
-  box-shadow: var(--card-shadow);
+  border: 2px solid var(--brand);
   padding: 20px 12px 16px;
   margin-top: 20px;
   margin-bottom: 20px;
@@ -334,170 +324,6 @@ body {
   color: var(--error-red);
 }
 
-.status-message.success {
-  color: var(--success-green);
-}
-
-/* ============================================================
-   8a. GIFT CARD
-   ============================================================ */
-
-/* Unloaded — gift code prompt */
-.gift-unloaded {
-  width: 100%;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.gift-prompt {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--brand);
-  text-align: center;
-  margin-bottom: 6px;
-}
-
-.gift-code-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 14px;
-  border: 2px solid rgba(63, 92, 56, 0.3);
-  border-radius: var(--radius-sm);
-  font-size: 1.1rem;
-  font-family: var(--font-stack);
-  color: var(--brand);
-  background: var(--white);
-  outline: none;
-  transition: border-color 0.15s ease;
-  text-align: center;
-}
-
-.gift-code-input::placeholder {
-  color: var(--gray-dark);
-  opacity: 0.7;
-}
-
-.gift-code-input:focus { border-color: var(--brand); }
-
-.gift-check-btn {
-  width: 100%;
-  height: 52px;
-  min-height: 44px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--brand);
-  color: var(--white);
-  font-size: 1.2rem;
-  font-weight: 700;
-  font-family: var(--font-stack);
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.gift-check-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.gift-check-btn:active:not(:disabled) { opacity: 0.85; }
-
-/* Loaded — balance + redeem inside a green-bordered card */
-.gift-loaded {
-  width: 100%;
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-.gift-card {
-  width: 100%;
-  background: var(--white);
-  border: var(--card-border);
-  border-radius: var(--radius);
-  padding: 22px 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.gift-balance-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--brand);
-  text-align: center;
-  opacity: 0.75;
-  letter-spacing: 0.04em;
-}
-
-.gift-balance-amount {
-  font-size: 3.4rem;
-  font-weight: 700;
-  color: var(--brand);
-  text-align: center;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-
-.gift-redeem-label {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--brand);
-  text-align: center;
-}
-
-.gift-amount-input {
-  width: 100%;
-  height: 48px;
-  padding: 0 14px;
-  border: 2px solid rgba(63, 92, 56, 0.3);
-  border-radius: var(--radius-sm);
-  font-size: 1.1rem;
-  font-family: var(--font-stack);
-  color: var(--brand);
-  background: var(--white);
-  outline: none;
-  transition: border-color 0.15s ease;
-  text-align: center;
-}
-
-.gift-amount-input::placeholder {
-  color: var(--gray-dark);
-  opacity: 0.7;
-}
-
-.gift-amount-input:focus { border-color: var(--brand); }
-
-.gift-amount-input::-webkit-outer-spin-button,
-.gift-amount-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-.gift-amount-input { -moz-appearance: textfield; }
-
-.gift-redeem-btn {
-  width: 100%;
-  height: 52px;
-  min-height: 44px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background-color: var(--brand);
-  color: var(--white);
-  font-size: 1.2rem;
-  font-weight: 700;
-  font-family: var(--font-stack);
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.gift-redeem-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.gift-redeem-btn:active:not(:disabled) { opacity: 0.85; }
-
 /* ============================================================
    8b. SOCIAL HUB
    ============================================================ */
@@ -548,75 +374,240 @@ body {
 .social-link--instagram { color: #E1306C; }
 .social-link--maps      { color: #EA4335; }
 .social-link--phone     { color: var(--brand); }
+.social-link--account   { color: var(--brand); }
 
-/* ─── action pills (pay with bit, jobs) ─── */
+/* ============================================================
+   8c. CODE MODAL (my-card / restore / override-confirm)
+   ============================================================ */
 
-.pill-row {
-  width: 100%;
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(63, 92, 56, 0.55);
+  z-index: 90;
   display: flex;
-  justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-top: 2px;
-  padding-bottom: 4px;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
 }
 
-.pill-row--secondary {
-  margin-top: 12px;
-  padding-bottom: 8px;
+.modal-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 
-.pill {
+.modal-card {
+  background: var(--white);
+  border-radius: 18px;
+  padding: 28px 22px 18px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+  transform: translateY(10px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.18s ease;
+}
+
+.modal-overlay.visible .modal-card {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.modal-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--brand);
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 0.01em;
+}
+
+.modal-subtitle {
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--brand);
+  text-align: center;
+  opacity: 0.68;
+  line-height: 1.55;
+  margin-bottom: 22px;
+  padding: 0 4px;
+}
+
+.code-display {
+  position: relative;
+  background: var(--bg);
+  border: 1.5px solid rgba(63, 92, 56, 0.18);
+  border-radius: 14px;
+  padding: 18px 56px;
+  margin-bottom: 20px;
+  direction: ltr;
+}
+
+.code-display .icon-btn {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.code-display-value {
+  text-align: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: var(--brand);
+  padding-left: 0.28em; /* offset letter-spacing so the visual center aligns with the box */
+  font-feature-settings: "tnum";
+  line-height: 1.1;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--brand);
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  min-width: 72px;
-  padding: 6px 22px;
-  border: none;
-  border-radius: 999px;
-  font-family: var(--font-stack);
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.12s ease;
+  transition: background-color 0.15s ease, transform 0.12s ease;
+  flex: 0 0 auto;
   -webkit-tap-highlight-color: transparent;
 }
 
-.pill:hover,
-.pill:focus-visible { opacity: 0.88; }
+.icon-btn:hover  { background-color: rgba(63, 92, 56, 0.06); }
+.icon-btn:active { background-color: rgba(63, 92, 56, 0.12); transform: scale(0.94); }
 
-.pill:active { transform: scale(0.94); }
-
-.pill--bit,
-.pill--paybox { min-width: 120px; }
-
-.pill--bit    { background: #06061B; color: #3DD4BC; }
-.pill--paybox { background: #33B5E5; color: #FFFFFF; }
-
-.pill--jobs {
-  background: #D1D5DB;
-  color: #111827;
-  font-weight: 400;
-  font-size: 0.9rem;
-  min-height: 28px;
-  min-width: 60px;
-  padding: 4px 14px;
+.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
-/* ============================================================
-   9. FOOTER
-   ============================================================ */
-
-.footer {
+.code-input-field {
   width: 100%;
-  padding: 0 0 24px;
-  margin-top: auto;
+  height: 60px;
+  background: var(--bg);
+  border: 1.5px solid rgba(63, 92, 56, 0.18);
+  border-radius: 14px;
+  padding: 0 16px;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: var(--brand);
+  margin-bottom: 14px;
+  font-family: var(--font-stack);
+  direction: ltr;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.code-input-field:focus {
+  border-color: var(--brand);
+  background: var(--white);
+}
+
+.code-input-field::placeholder {
+  font-weight: 700;
+  opacity: 0.28;
+  letter-spacing: 0.25em;
+}
+
+.modal-status {
+  text-align: center;
+  font-size: 0.9rem;
+  min-height: 1.3em;
+  color: var(--error-red);
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
+
+.modal-primary-btn {
+  width: 100%;
+  height: 54px;
+  border: none;
+  border-radius: 14px;
+  background: var(--brand);
+  color: var(--white);
+  font-family: var(--font-stack);
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.12s ease;
+  margin-bottom: 10px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-primary-btn:active:not(:disabled) {
+  opacity: 0.9;
+  transform: scale(0.99);
+}
+
+.modal-primary-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.modal-primary-btn[aria-busy="true"] {
+  opacity: 1; /* full opacity while loading so the spinner reads as active, not greyed out */
+}
+
+.btn-spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 2.5px solid rgba(255, 255, 255, 0.35);
+  border-top-color: var(--white);
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spinner-rotate {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-spinner { animation: none; }
+}
+
+.modal-link-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: transparent;
+  border: none;
+  font-family: var(--font-stack);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--brand);
+  opacity: 0.68;
+  cursor: pointer;
+  padding: 10px 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.modal-link-btn:hover  { opacity: 0.85; }
+.modal-link-btn:active { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal-card {
+    transition: none;
+  }
 }
 
 /* ============================================================
-   10. TOAST
+   9. TOAST
    ============================================================ */
 
 .toast {
