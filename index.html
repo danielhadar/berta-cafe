@@ -159,5 +159,21 @@
     </div>
   </div>
 
+  <!-- Negishut accessibility widget — IS 5568 / WCAG 2.0 AA -->
+  <!-- Config must be set BEFORE the widget script loads -->
+  <script>
+    window.NegishutConfig = {
+      position:         "bottom-right",
+      businessName:     "קפה ברטה",
+      knownLimitations: "",
+      coordinator: {
+        name:  "דניאל הדר",
+        email: "bakbukimleyadhapah@gmail.com",
+        phone: ""
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="vendor/negishut/negishut.css?v=8593dd0b">
+  <script src="vendor/negishut/negishut.js?v=8593dd0b" defer></script>
 </body>
 </html>
