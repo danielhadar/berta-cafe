@@ -8,15 +8,17 @@
  *
  *   "events" sheet (auto-created on first event, append-only):
  *     A: ts | B: type | C: value
- *     type ∈ {punch, freebie, social}
+ *     type ∈ {punch, freebie, social, scan}
  *     value: tab key for punch/freebie ("coffee"/"pizza"/"sandwich"),
- *            icon key for social ("facebook"/"instagram"/"maps"/"phone").
+ *            icon key for social ("facebook"/"instagram"/"maps"/"phone"),
+ *            source for scan ("qr").
  *
  * API:
  *   GET  ?action=get&code=XXXXXX        -> { ok, state }
  *   POST {action:"set",   code, state}  -> { ok }; server diffs old→new and
  *                                         logs punch/freebie events.
  *   POST {action:"click", value}        -> { ok }; logs a social event.
+ *   POST {action:"scan"}                -> { ok }; logs a qr scan event.
  *
  * Frontend uses Content-Type: text/plain to skip CORS preflight; we read the
  * body from e.postData.contents.
@@ -217,12 +219,19 @@ function handleClick_(body, now) {
   return json_({ ok: true });
 }
 
+function handleScan_(body, now) {
+  // Single scan source for now (qr). Add to an allowlist when more arrive.
+  getEventsSheet_().appendRow([now, 'scan', 'qr']);
+  return json_({ ok: true });
+}
+
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
     var now = new Date().toISOString();
     if (body.action === 'set')   return handleSet_(body, now);
     if (body.action === 'click') return handleClick_(body, now);
+    if (body.action === 'scan')  return handleScan_(body, now);
     return json_({ ok: false, error: 'bad_request' });
   } catch (err) {
     return json_({ ok: false, error: String(err) });

@@ -96,8 +96,12 @@ event. No customer code — events are aggregate-only by design.
   `set` action sees punches go up. Multi-punches emit one row each; freebies
   fire when a tab's punch count reaches `TAB_TOTALS[tab]` from below.
   Decreases (the 10→0 celebration reset) emit nothing.
-- `social` rows are written by the new `click` action, fired by the client
+- `social` rows are written by the `click` action, fired by the client
   whenever a customer taps an icon in the social hub.
+- `scan` rows are written by the `scan` action, fired by the client on
+  first load when the URL carries `?ref=qr` — i.e. the visitor arrived via
+  a scanned QR code. The client strips the param after firing so reloads
+  don't double-count.
 
 All five of the dashboard questions you'd ask (punches per type per range,
 freebies per type, social tap totals) are a single pivot over this log.

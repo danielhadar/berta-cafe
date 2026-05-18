@@ -865,12 +865,12 @@ function syncToBackend() {
   backendSet(userCode, backendStateBlob());
 }
 
-// Fire-and-forget analytics ping for a social-icon tap. Uses sendBeacon so
-// the request survives the user immediately leaving for an external app
-// (tel:, mailto:, target=_blank navigations).
-function backendClick(value) {
+// Fire-and-forget analytics ping. Uses sendBeacon so the request survives
+// the user immediately leaving for an external app (tel:, mailto:,
+// target=_blank navigations).
+function backendBeacon(payload) {
   if (!BACKEND_URL) return;
-  var body = JSON.stringify({ action: "click", value: value });
+  var body = JSON.stringify(payload);
   if (navigator.sendBeacon) {
     try {
       navigator.sendBeacon(BACKEND_URL, new Blob([body], { type: "text/plain;charset=utf-8" }));
@@ -883,6 +883,23 @@ function backendClick(value) {
     body: body,
     keepalive: true
   }).catch(function () {});
+}
+
+function backendClick(value) { backendBeacon({ action: "click", value: value }); }
+function backendScan()       { backendBeacon({ action: "scan" }); }
+
+// If the URL carries ?ref=qr, the visitor arrived via a scanned QR code.
+// Fire a single scan event and strip the param so reloads don't refire.
+function detectQRScan() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get("ref") !== "qr") return;
+    backendScan();
+    params.delete("ref");
+    var qs = params.toString();
+    var url = window.location.pathname + (qs ? "?" + qs : "") + window.location.hash;
+    history.replaceState(null, "", url);
+  } catch (e) {}
 }
 
 // ============================================================
@@ -1146,6 +1163,7 @@ accountBtnEl.addEventListener("click", function () { openModal("my-card"); });
 
 (function init() {
   codeInputEl.setAttribute("inputmode", INPUT_MODE);
+  detectQRScan();
 
   if (!checkLocalStorageAvailable()) {
     appEl.classList.add("hidden");
