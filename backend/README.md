@@ -106,6 +106,17 @@ event. No customer code — events are aggregate-only by design.
 All five of the dashboard questions you'd ask (punches per type per range,
 freebies per type, social tap totals) are a single pivot over this log.
 
+### `report` sheet — pre-built dashboard
+
+Created by running `setupReport()` from the Apps Script editor (one-time).
+The sheet has yellow-highlighted input cells at the top (`From date`, `To
+date`, `From hour`, `To hour`) and computed metric rows below — punches /
+freebies / social taps / scans, all filtered by the input range, plus
+completion-rate derivations.
+
+Re-running `setupReport()` is safe: it clears and rebuilds the sheet.
+Useful after schema changes.
+
 ## Security & caveats
 
 - The Apps Script URL is effectively a "key" — anyone who has it can read/write

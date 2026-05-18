@@ -228,7 +228,9 @@ function handleScan_(body, now) {
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
-    var now = new Date().toISOString();
+    // Native Date object so Sheets stores as datetime (not text). Enables
+    // numeric date comparisons in the report dashboard.
+    var now = new Date();
     if (body.action === 'set')   return handleSet_(body, now);
     if (body.action === 'click') return handleClick_(body, now);
     if (body.action === 'scan')  return handleScan_(body, now);
@@ -236,4 +238,127 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
+}
+
+// ---------- dashboard setup ----------
+
+/**
+ * One-time migration. Converts any string ISO timestamps in events!A to
+ * native Date objects so date comparisons in the dashboard work. Idempotent
+ * — only touches cells that are still strings. Also normalizes codes!E
+ * (updated_at) the same way.
+ */
+function migrateTimestampsToDates_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  // events!A
+  var events = ss.getSheetByName('events');
+  if (events && events.getLastRow() >= 2) {
+    var range = events.getRange(2, 1, events.getLastRow() - 1, 1);
+    var values = range.getValues();
+    var changed = false;
+    for (var i = 0; i < values.length; i++) {
+      var v = values[i][0];
+      if (typeof v === 'string' && v) {
+        var d = new Date(v);
+        if (!isNaN(d.getTime())) { values[i][0] = d; changed = true; }
+      }
+    }
+    if (changed) range.setValues(values);
+  }
+
+  // codes!E (updated_at column)
+  var codes = ss.getSheetByName('codes');
+  if (codes && codes.getLastRow() >= 2) {
+    var col = CODES_HEADER.indexOf('updated_at') + 1; // 1-indexed
+    var range2 = codes.getRange(2, col, codes.getLastRow() - 1, 1);
+    var values2 = range2.getValues();
+    var changed2 = false;
+    for (var j = 0; j < values2.length; j++) {
+      var w = values2[j][0];
+      if (typeof w === 'string' && w) {
+        var d2 = new Date(w);
+        if (!isNaN(d2.getTime())) { values2[j][0] = d2; changed2 = true; }
+      }
+    }
+    if (changed2) range2.setValues(values2);
+  }
+}
+
+/**
+ * Builds (or rebuilds) the "report" sheet — a date+hour-filtered dashboard
+ * pulling counts off the events and codes sheets. Run once from the Apps
+ * Script editor: select `setupReport` in the function dropdown, click Run.
+ *
+ * Idempotent: re-running clears the sheet, normalizes any legacy string
+ * timestamps to Date objects, and rebuilds. Safe after schema changes.
+ */
+function setupReport() {
+  migrateTimestampsToDates_();
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('report');
+  if (!sheet) sheet = ss.insertSheet('report');
+  else sheet.clear();
+
+  var today = new Date();
+  var firstOfYear = new Date(today.getFullYear(), 0, 1);
+
+  // Each entry is [label, value-or-formula]. Row index = array index + 1.
+  // Helper cells reference $B$8 (start) and $B$9 (end) — keep row numbers stable.
+  var rows = [
+    ['INPUTS', ''],                                                                  //  1
+    ['From date', firstOfYear],                                                      //  2
+    ['To date', today],                                                              //  3
+    ['From hour (0–23)', 0],                                                         //  4
+    ['To hour (0–23)', 23],                                                          //  5
+    ['', ''],                                                                        //  6
+    ['(helpers — auto)', ''],                                                        //  7
+    ['Start datetime', '=B2+B4/24'],                                                 //  8
+    ['End datetime (excl)', '=B3+(B5+1)/24'],                                        //  9
+    ['', ''],                                                                        // 10
+    ['PUNCHES', ''],                                                                 // 11
+    ['Coffee',   '=COUNTIFS(events!B:B,"punch",events!C:C,"coffee",  events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 12
+    ['Pizza',    '=COUNTIFS(events!B:B,"punch",events!C:C,"pizza",   events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 13
+    ['Sandwich', '=COUNTIFS(events!B:B,"punch",events!C:C,"sandwich",events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 14
+    ['', ''],                                                                        // 15
+    ['FREEBIES (free items earned)', ''],                                            // 16
+    ['Coffee',   '=COUNTIFS(events!B:B,"freebie",events!C:C,"coffee",  events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 17
+    ['Pizza',    '=COUNTIFS(events!B:B,"freebie",events!C:C,"pizza",   events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 18
+    ['Sandwich', '=COUNTIFS(events!B:B,"freebie",events!C:C,"sandwich",events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 19
+    ['', ''],                                                                        // 20
+    ['SOCIAL TAPS', ''],                                                             // 21
+    ['Facebook',  '=COUNTIFS(events!B:B,"social",events!C:C,"facebook", events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 22
+    ['Instagram', '=COUNTIFS(events!B:B,"social",events!C:C,"instagram",events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 23
+    ['Maps',      '=COUNTIFS(events!B:B,"social",events!C:C,"maps",     events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 24
+    ['Phone',     '=COUNTIFS(events!B:B,"social",events!C:C,"phone",    events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 25
+    ['', ''],                                                                        // 26
+    ['SCANS', ''],                                                                   // 27
+    ['QR', '=COUNTIFS(events!B:B,"scan",events!C:C,"qr",events!A:A,">="&$B$8,events!A:A,"<"&$B$9)'], // 28
+    ['', ''],                                                                        // 29
+    ['DERIVED', ''],                                                                 // 30
+    ['Coffee completion %',   '=IFERROR(B17*10/B12,0)'],                             // 31
+    ['Pizza completion %',    '=IFERROR(B18*10/B13,0)'],                             // 32
+    ['Sandwich completion %', '=IFERROR(B19*10/B14,0)'],                             // 33
+    ['Total codes ever',      '=COUNTA(codes!A:A)-1']                                // 34
+  ];
+
+  sheet.getRange(1, 1, rows.length, 2).setValues(rows);
+
+  // Number formats
+  sheet.getRange('B2:B3').setNumberFormat('yyyy-mm-dd');
+  sheet.getRange('B8:B9').setNumberFormat('yyyy-mm-dd hh:mm');
+  sheet.getRange('B31:B33').setNumberFormat('0%');
+
+  // Visual cues: bold section headers, highlight input cells, subdue helpers
+  var headerRows = [1, 7, 11, 16, 21, 27, 30];
+  for (var i = 0; i < headerRows.length; i++) {
+    sheet.getRange(headerRows[i], 1, 1, 2).setFontWeight('bold');
+  }
+  sheet.getRange('B2:B5').setBackground('#fff2cc'); // inputs — edit me
+  sheet.getRange('B8:B9').setBackground('#f3f3f3'); // helpers — don't touch
+
+  sheet.setColumnWidth(1, 260);
+  sheet.setColumnWidth(2, 220);
+  sheet.setFrozenRows(5);
 }
