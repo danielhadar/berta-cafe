@@ -5,9 +5,9 @@
 // Per-tab config. Tab order = display order (RTL: rightmost first).
 // To change a code or goal, edit it here. Each tab has its own state and storage.
 var TABS = [
-  { key: "coffee",   label: "קפה",  code: "2552", total: 10, storageKey: "berta_punch_coffee",   celebrate: "הקפה הזה על חשבוננו :)" },
-  { key: "pizza",    label: "פיצה", code: "2552", total: 10, storageKey: "berta_punch_pizza",    celebrate: "הפיצה הזאת על חשבוננו :)" },
-  { key: "sandwich", label: "כריך", code: "2552", total: 10, storageKey: "berta_punch_sandwich", celebrate: "הכריך הזה על חשבוננו :)" }
+  { key: "coffee",   label: "☕ קפה",  code: "2552", total: 10, storageKey: "berta_punch_coffee",   celebrate: "הקפה הזה על חשבוננו :)" },
+  { key: "pizza",    label: "🍕 פיצה", code: "2552", total: 10, storageKey: "berta_punch_pizza",    celebrate: "הפיצה הזאת על חשבוננו :)" },
+  { key: "sandwich", label: "🥪 כריך", code: "2552", total: 10, storageKey: "berta_punch_sandwich", celebrate: "הכריך הזה על חשבוננו :)" }
 ];
 
 // Change to "text" if any code contains letters. "numeric" opens the number pad on mobile.
@@ -865,6 +865,26 @@ function syncToBackend() {
   backendSet(userCode, backendStateBlob());
 }
 
+// Fire-and-forget analytics ping for a social-icon tap. Uses sendBeacon so
+// the request survives the user immediately leaving for an external app
+// (tel:, mailto:, target=_blank navigations).
+function backendClick(value) {
+  if (!BACKEND_URL) return;
+  var body = JSON.stringify({ action: "click", value: value });
+  if (navigator.sendBeacon) {
+    try {
+      navigator.sendBeacon(BACKEND_URL, new Blob([body], { type: "text/plain;charset=utf-8" }));
+      return;
+    } catch (e) { /* fall through to fetch */ }
+  }
+  fetch(BACKEND_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: body,
+    keepalive: true
+  }).catch(function () {});
+}
+
 // ============================================================
 // CODE MODAL (my-card / restore / override-confirm)
 // ============================================================
@@ -1106,6 +1126,19 @@ modalEl.addEventListener("click", function (e) {
 });
 
 accountBtnEl.addEventListener("click", function () { openModal("my-card"); });
+
+// Social-hub analytics. Wire one fire-and-forget click per icon. The link's
+// own href (target=_blank, tel:) still navigates; sendBeacon ensures the
+// analytics ping leaves before the page loses focus.
+[
+  { selector: ".social-link--facebook",  value: "facebook" },
+  { selector: ".social-link--instagram", value: "instagram" },
+  { selector: ".social-link--maps",      value: "maps" },
+  { selector: ".social-link--phone",     value: "phone" }
+].forEach(function (h) {
+  var el = document.querySelector(h.selector);
+  if (el) el.addEventListener("click", function () { backendClick(h.value); });
+});
 
 // ============================================================
 // INITIALIZATION

@@ -54,16 +54,20 @@ If you edit `Code.gs`, you need to redeploy:
 
 ## Schema
 
-One row per customer, one column per tab. Flat shape — readable, sortable,
-manually editable.
+### `codes` sheet — current punch state per code
+
+One row per customer code, one column per tab. Flat shape — readable,
+sortable, manually editable. The script renames the spreadsheet's first
+sheet to `codes` on first invocation (auto-migration; nothing to click).
 
 | A (code) | B (coffee) | C (pizza) | D (sandwich) | E (updated_at)             |
 | -------- | ---------- | --------- | ------------ | -------------------------- |
 | `Q8DR37` | 3          | 0         | 1            | `2026-05-18T20:13:42.123Z` |
 
 Tab order is defined by `TAB_KEYS` at the top of `Code.gs` and must mirror
-`TABS` in `src/app.js`. The script auto-writes the header row on a blank
-sheet — to change the columns, clear row 1 and let the next write rebuild it.
+`TABS` in `src/app.js`. The header self-heals on every script invocation
+(via `ensureHeader_`) — if you change the column set in code, the next API
+hit rewrites the header to match.
 
 The wire format with the client is still object-wrapped to leave room for
 future per-tab fields:
@@ -75,6 +79,28 @@ future per-tab fields:
 Shape arrangements (the geometric layout on the card) are **not** stored
 here — they're presentation, kept per-device in `localStorage`. The backend
 only knows punch counts.
+
+### `events` sheet — anonymous append-only event log
+
+Auto-created the first time the script writes an event. One row per atomic
+event. No customer code — events are aggregate-only by design.
+
+| A (ts)                    | B (type)  | C (value)    |
+| ------------------------- | --------- | ------------ |
+| `2026-05-18T20:13:42.123Z` | `punch`   | `coffee`     |
+| `2026-05-18T20:13:42.123Z` | `punch`   | `coffee`     |
+| `2026-05-18T20:14:11.040Z` | `freebie` | `coffee`     |
+| `2026-05-18T20:15:02.880Z` | `social`  | `instagram`  |
+
+- `punch` / `freebie` rows are written **server-side** when the existing
+  `set` action sees punches go up. Multi-punches emit one row each; freebies
+  fire when a tab's punch count reaches `TAB_TOTALS[tab]` from below.
+  Decreases (the 10→0 celebration reset) emit nothing.
+- `social` rows are written by the new `click` action, fired by the client
+  whenever a customer taps an icon in the social hub.
+
+All five of the dashboard questions you'd ask (punches per type per range,
+freebies per type, social tap totals) are a single pivot over this log.
 
 ## Security & caveats
 

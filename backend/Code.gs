@@ -1,45 +1,81 @@
 /**
  * Berta Coffee — punch card backend (Google Apps Script).
  *
- * Storage model (flat columns, one row per customer):
- *   A: code        (string, 6 chars, alphabet [2-9A-HJ-NP-Z])
- *   B: coffee      (integer, punch count)
- *   C: pizza       (integer)
- *   D: sandwich    (integer)
- *   E: updated_at  (ISO string)
- *   Row 1 is the header (auto-written by the script on a blank sheet).
+ * Two sheets in the spreadsheet:
  *
- * Tab order is set by TAB_KEYS below — keep in sync with TABS in src/app.js.
- * Adding a tab: append a new key to TAB_KEYS *and* add a matching column to
- * the sheet header. Easiest: clear the sheet's first row and let the script
- * re-write the header on the next write.
+ *   "codes" sheet (current punch state per code):
+ *     A: code | B: coffee | C: pizza | D: sandwich | E: updated_at
  *
- * Wire protocol with the client stays {tab: {punches: N}, ...} — the wrapper
- * around the integer leaves room for future per-tab fields without breaking
- * older clients/servers.
+ *   "events" sheet (auto-created on first event, append-only):
+ *     A: ts | B: type | C: value
+ *     type ∈ {punch, freebie, social}
+ *     value: tab key for punch/freebie ("coffee"/"pizza"/"sandwich"),
+ *            icon key for social ("facebook"/"instagram"/"maps"/"phone").
  *
- * API (deployed as a Web App, "Execute as: me", "Anyone" access):
- *   GET  ?action=get&code=XXXXXX     -> { ok: true, state: {...} } or { ok: false }
- *   POST {action:"set", code, state} -> { ok: true }
+ * API:
+ *   GET  ?action=get&code=XXXXXX        -> { ok, state }
+ *   POST {action:"set",   code, state}  -> { ok }; server diffs old→new and
+ *                                         logs punch/freebie events.
+ *   POST {action:"click", value}        -> { ok }; logs a social event.
  *
  * Frontend uses Content-Type: text/plain to skip CORS preflight; we read the
  * body from e.postData.contents.
+ *
+ * Keep TAB_KEYS in sync with TABS in src/app.js. TAB_TOTALS must match the
+ * `total` on each tab — it's how the server detects freebie events.
+ *
+ * Schema self-heal: on every invocation, the script renames the first sheet
+ * to "codes" if needed, ensures the "events" sheet exists, and rewrites
+ * either header if it doesn't exactly match what the script expects.
  */
 
-var TAB_KEYS = ['coffee', 'pizza', 'sandwich'];
-var HEADER = ['code'].concat(TAB_KEYS).concat(['updated_at']);
-var CODE_REGEX = /^[2-9A-HJ-NP-Z]{6}$/;
+var TAB_KEYS      = ['coffee', 'pizza', 'sandwich'];
+var TAB_TOTALS    = { coffee: 10, pizza: 10, sandwich: 10 };
+var SOCIAL_VALUES = ['facebook', 'instagram', 'maps', 'phone'];
 
-function getSheet_() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, HEADER.length).setValues([HEADER]);
-    sheet.setFrozenRows(1);
+var CODES_HEADER  = ['code'].concat(TAB_KEYS).concat(['updated_at']);
+var EVENTS_HEADER = ['ts', 'type', 'value'];
+var CODE_REGEX    = /^[2-9A-HJ-NP-Z]{6}$/;
+
+// ---------- sheet accessors ----------
+
+function getCodesSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('codes');
+  if (!sheet) {
+    // First-time migration: rename the original first sheet to "codes".
+    sheet = ss.getSheets()[0];
+    if (sheet.getName() !== 'codes') sheet.setName('codes');
   }
+  ensureHeader_(sheet, CODES_HEADER);
   return sheet;
 }
 
-function findRow_(sheet, code) {
+function getEventsSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('events');
+  if (!sheet) sheet = ss.insertSheet('events');
+  ensureHeader_(sheet, EVENTS_HEADER);
+  return sheet;
+}
+
+// Rewrite row 1 if it doesn't exactly match what the script expects. Lets
+// schema changes self-heal on the next write — the operator only needs to
+// clear stale data rows, not also fix the header by hand.
+function ensureHeader_(sheet, expected) {
+  var current = sheet.getRange(1, 1, 1, expected.length).getValues()[0];
+  for (var i = 0; i < expected.length; i++) {
+    if (current[i] !== expected[i]) {
+      sheet.getRange(1, 1, 1, expected.length).setValues([expected]);
+      sheet.setFrozenRows(1);
+      return;
+    }
+  }
+}
+
+// ---------- helpers ----------
+
+function findCodeRow_(sheet, code) {
   var last = sheet.getLastRow();
   if (last < 2) return -1;
   var codes = sheet.getRange(2, 1, last - 1, 1).getValues();
@@ -55,27 +91,80 @@ function toInt_(v) {
   return n;
 }
 
+function readCodePunches_(sheet, row) {
+  var values = sheet.getRange(row, 1, 1, CODES_HEADER.length).getValues()[0];
+  var out = {};
+  for (var i = 0; i < TAB_KEYS.length; i++) {
+    out[TAB_KEYS[i]] = toInt_(values[CODES_HEADER.indexOf(TAB_KEYS[i])]);
+  }
+  return out;
+}
+
 function rowToState_(values) {
   var state = {};
   for (var i = 0; i < TAB_KEYS.length; i++) {
-    var col = HEADER.indexOf(TAB_KEYS[i]);
+    var col = CODES_HEADER.indexOf(TAB_KEYS[i]);
     state[TAB_KEYS[i]] = { punches: toInt_(values[col]) };
   }
   return state;
 }
 
-function stateToRow_(code, state, now) {
-  var row = new Array(HEADER.length);
+function stateToCodeRow_(code, state, now) {
+  var row = new Array(CODES_HEADER.length);
   for (var i = 0; i < row.length; i++) row[i] = '';
-  row[HEADER.indexOf('code')] = code;
-  row[HEADER.indexOf('updated_at')] = now;
+  row[CODES_HEADER.indexOf('code')] = code;
+  row[CODES_HEADER.indexOf('updated_at')] = now;
   for (var i = 0; i < TAB_KEYS.length; i++) {
     var key = TAB_KEYS[i];
     var punches = (state[key] && typeof state[key].punches === 'number') ? state[key].punches : 0;
-    row[HEADER.indexOf(key)] = toInt_(punches);
+    row[CODES_HEADER.indexOf(key)] = toInt_(punches);
   }
   return row;
 }
+
+function punchesFromState_(state) {
+  var out = {};
+  for (var i = 0; i < TAB_KEYS.length; i++) {
+    var key = TAB_KEYS[i];
+    out[key] = (state[key] && typeof state[key].punches === 'number') ? toInt_(state[key].punches) : 0;
+  }
+  return out;
+}
+
+// ---------- event logging ----------
+
+/**
+ * Compare old → new punches per tab. For each positive delta, write N punch
+ * events. If a tab reaches its total this round (and wasn't there before),
+ * write a freebie event. Decreases (e.g. 10→0 on celebration dismissal) emit
+ * nothing.
+ */
+function logPunchAndFreebieEvents_(oldPunches, newPunches, now) {
+  var rows = [];
+  for (var i = 0; i < TAB_KEYS.length; i++) {
+    var key = TAB_KEYS[i];
+    var oldN = oldPunches[key] || 0;
+    var newN = newPunches[key] || 0;
+    if (newN <= oldN) continue;
+    var delta = newN - oldN;
+    for (var j = 0; j < delta; j++) {
+      rows.push([now, 'punch', key]);
+    }
+    var total = TAB_TOTALS[key];
+    if (typeof total === 'number' && newN === total && oldN < total) {
+      rows.push([now, 'freebie', key]);
+    }
+  }
+  if (rows.length === 0) return;
+  var sheet = getEventsSheet_();
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, EVENTS_HEADER.length).setValues(rows);
+}
+
+function logSocialEvent_(value, now) {
+  getEventsSheet_().appendRow([now, 'social', value]);
+}
+
+// ---------- response ----------
 
 function json_(obj) {
   return ContentService
@@ -83,39 +172,58 @@ function json_(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// ---------- handlers ----------
+
 function doGet(e) {
   try {
     var action = (e && e.parameter) ? e.parameter.action : null;
-    var code = (e && e.parameter) ? e.parameter.code : null;
+    var code   = (e && e.parameter) ? e.parameter.code   : null;
     if (action !== 'get' || !code || !CODE_REGEX.test(code)) {
       return json_({ ok: false, error: 'bad_request' });
     }
-    var sheet = getSheet_();
-    var row = findRow_(sheet, code);
+    var sheet = getCodesSheet_();
+    var row = findCodeRow_(sheet, code);
     if (row === -1) return json_({ ok: false });
-    var values = sheet.getRange(row, 1, 1, HEADER.length).getValues()[0];
+    var values = sheet.getRange(row, 1, 1, CODES_HEADER.length).getValues()[0];
     return json_({ ok: true, state: rowToState_(values) });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
 }
 
+function handleSet_(body, now) {
+  if (!body.code || !CODE_REGEX.test(body.code) || !body.state) {
+    return json_({ ok: false, error: 'bad_request' });
+  }
+  var sheet = getCodesSheet_();
+  var row = findCodeRow_(sheet, body.code);
+  var oldPunches = (row === -1) ? {} : readCodePunches_(sheet, row);
+  var newPunches = punchesFromState_(body.state);
+  var rowData = stateToCodeRow_(body.code, body.state, now);
+  if (row === -1) {
+    sheet.appendRow(rowData);
+  } else {
+    sheet.getRange(row, 1, 1, CODES_HEADER.length).setValues([rowData]);
+  }
+  logPunchAndFreebieEvents_(oldPunches, newPunches, now);
+  return json_({ ok: true });
+}
+
+function handleClick_(body, now) {
+  if (!body.value || SOCIAL_VALUES.indexOf(body.value) === -1) {
+    return json_({ ok: false, error: 'bad_request' });
+  }
+  logSocialEvent_(body.value, now);
+  return json_({ ok: true });
+}
+
 function doPost(e) {
   try {
     var body = JSON.parse(e.postData.contents);
-    if (body.action !== 'set' || !body.code || !CODE_REGEX.test(body.code) || !body.state) {
-      return json_({ ok: false, error: 'bad_request' });
-    }
-    var sheet = getSheet_();
-    var row = findRow_(sheet, body.code);
     var now = new Date().toISOString();
-    var rowData = stateToRow_(body.code, body.state, now);
-    if (row === -1) {
-      sheet.appendRow(rowData);
-    } else {
-      sheet.getRange(row, 1, 1, HEADER.length).setValues([rowData]);
-    }
-    return json_({ ok: true });
+    if (body.action === 'set')   return handleSet_(body, now);
+    if (body.action === 'click') return handleClick_(body, now);
+    return json_({ ok: false, error: 'bad_request' });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
