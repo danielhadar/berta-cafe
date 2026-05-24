@@ -3,3 +3,6 @@ node_modules/
 *.log
 .vscode/
 .idea/
+
+# generated print artifacts (regenerate via qr-card/build-pdfs.sh)
+qr-card/*.pdf
