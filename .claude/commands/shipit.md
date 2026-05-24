@@ -2,7 +2,7 @@
 description: Ship the Berta Coffee punch card to prod — commit pending work, push to origin/main, and verify the live site picks up the change
 ---
 
-You are shipping the Berta Coffee punch card to production. "Prod" means `origin/main` on GitHub — pushing there triggers a GitHub Pages rebuild. The live site is **https://berta-coffee-demo.danielhadar.com**.
+You are shipping the Berta Coffee punch card to production. "Prod" means `origin/main` on GitHub — pushing there triggers a GitHub Pages rebuild. The live site is **https://berta-cafe.danielhadar.com**.
 
 ## Goal
 
@@ -45,9 +45,9 @@ If a commit only touches files that are not query-versioned (e.g. `README.md`, `
 **7. Push.** `git push origin main`. Then `git status` to confirm clean + tracking up to date.
 
 **8. Verify the live site.** After push, give GitHub Pages ~60–90s to rebuild, then probe:
-- `curl -sI https://berta-coffee-demo.danielhadar.com/ -o /dev/null -w "%{http_code}\n"` — should be `200`.
-- Optionally fetch a known string from the latest change to confirm content swapped (e.g. `curl -s https://berta-coffee-demo.danielhadar.com/src/style.css | grep -m1 "<some new selector>"`). If you cache-busted in step 4, also fetch the asset with the new version string and confirm it serves: `curl -sI 'https://berta-coffee-demo.danielhadar.com/src/style.css?v=N' -o /dev/null -w "%{http_code}\n"` should be `200`.
-- If it's still serving the old build, wait another 30–60s and re-probe. The build status itself can also be checked with `gh api repos/danielhadar/berta-coffee-demo/pages/builds/latest --jq '.status'` — `built` means the new version is live.
+- `curl -sI https://berta-cafe.danielhadar.com/ -o /dev/null -w "%{http_code}\n"` — should be `200`.
+- Optionally fetch a known string from the latest change to confirm content swapped (e.g. `curl -s https://berta-cafe.danielhadar.com/src/style.css | grep -m1 "<some new selector>"`). If you cache-busted in step 4, also fetch the asset with the new version string and confirm it serves: `curl -sI 'https://berta-cafe.danielhadar.com/src/style.css?v=N' -o /dev/null -w "%{http_code}\n"` should be `200`.
+- If it's still serving the old build, wait another 30–60s and re-probe. The build status itself can also be checked with `gh api repos/danielhadar/berta-cafe/pages/builds/latest --jq '.status'` — `built` means the new version is live.
 
 **9. Report.** Tell the user:
 - Which commits went to origin (SHA range, one-line subjects).
@@ -66,4 +66,4 @@ If a commit only touches files that are not query-versioned (e.g. `README.md`, `
 
 - This is a static site (vanilla HTML/CSS/JS, no build step). Pushing to `main` is enough to trigger a deploy — there's nothing to compile, install, or test before the push.
 - The repo is **public** — same arrangement as `matkonim`. The `PUNCH_CODE` in `app.js` is necessarily visible to anyone who visits the live site (client-side code), so private-repo'ing it would not actually hide the secret. We're in demo phase; if a stricter model is needed later, switch to server-side validation.
-- DNS lives in Cloudflare. `berta-coffee-demo.danielhadar.com` is a CNAME record pointing to `danielhadar.github.io`. Pages reads the domain from the `CNAME` file in the repo root.
+- DNS lives in Cloudflare. `berta-cafe.danielhadar.com` is a CNAME record pointing to `danielhadar.github.io`. Pages reads the domain from the `CNAME` file in the repo root.
