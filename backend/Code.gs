@@ -15,6 +15,10 @@
  *
  * API:
  *   GET  ?action=get&code=XXXXXX        -> { ok, state }
+ *   GET  ?action=report&from=YYYY-MM-DD&to=YYYY-MM-DD
+ *                                        -> { ok, range, scans, punches, freebies }
+ *                                          counts are computed directly from the
+ *                                          events sheet over [from 00:00, to+1 00:00).
  *   POST {action:"set",   code, state}  -> { ok }; server diffs old→new and
  *                                         logs punch/freebie events.
  *   POST {action:"click", value}        -> { ok }; logs a social event.
@@ -179,6 +183,7 @@ function json_(obj) {
 function doGet(e) {
   try {
     var action = (e && e.parameter) ? e.parameter.action : null;
+    if (action === 'report') return handleReport_(e.parameter || {});
     var code   = (e && e.parameter) ? e.parameter.code   : null;
     if (action !== 'get' || !code || !CODE_REGEX.test(code)) {
       return json_({ ok: false, error: 'bad_request' });
@@ -191,6 +196,50 @@ function doGet(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
+}
+
+// Inclusive [from, to] date window (local script tz). Returns counts off the
+// events sheet — no dependency on the report sheet's stateful B2/B3 inputs.
+function handleReport_(params) {
+  var fromStr = params.from;
+  var toStr   = params.to;
+  if (!fromStr || !toStr || !/^\d{4}-\d{2}-\d{2}$/.test(fromStr) || !/^\d{4}-\d{2}-\d{2}$/.test(toStr)) {
+    return json_({ ok: false, error: 'bad_request' });
+  }
+  var fromParts = fromStr.split('-').map(Number);
+  var toParts   = toStr.split('-').map(Number);
+  var start = new Date(fromParts[0], fromParts[1] - 1, fromParts[2], 0, 0, 0);
+  var endExcl = new Date(toParts[0], toParts[1] - 1, toParts[2] + 1, 0, 0, 0);
+
+  var counts = {
+    scans: 0,
+    punches:  { coffee: 0, pizza: 0, sandwich: 0 },
+    freebies: { coffee: 0, pizza: 0, sandwich: 0 }
+  };
+
+  var events = getEventsSheet_();
+  var last = events.getLastRow();
+  if (last >= 2) {
+    var rows = events.getRange(2, 1, last - 1, EVENTS_HEADER.length).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      var ts = rows[i][0];
+      if (!(ts instanceof Date)) continue;
+      if (ts < start || ts >= endExcl) continue;
+      var type = rows[i][1];
+      var value = rows[i][2];
+      if (type === 'scan' && value === 'qr') counts.scans++;
+      else if (type === 'punch'   && counts.punches[value]  !== undefined) counts.punches[value]++;
+      else if (type === 'freebie' && counts.freebies[value] !== undefined) counts.freebies[value]++;
+    }
+  }
+
+  return json_({
+    ok: true,
+    range: { from: fromStr, to: toStr },
+    scans: counts.scans,
+    punches: counts.punches,
+    freebies: counts.freebies
+  });
 }
 
 function handleSet_(body, now) {
